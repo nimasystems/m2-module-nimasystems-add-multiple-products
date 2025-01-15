@@ -1,0 +1,35 @@
+<?php
+/**
+ * Copyright © Nimasystems (info@nimasystems.com). All rights reserved.
+ * Please visit Nimasystems.com for license details
+ */
+/**
+ * @var \Nimasystems\AddMultipleProducts\Block\Product\Action $block
+ */
+?>
+
+<div style="display:none" class="qty-controller" data-addmultipleproducts-js="qtycontroller-<?= /* @noEscape */$block->getProductId() ?>">
+    <button class="qty-dec" type="button" aria-label="Минус"></button>
+    <div class="quantity-value">
+        <span class="value">
+            <span aria-label="Click to edit" class="qty-view">
+                <span aria-label="Current Quantity" class="item-qty"></span>
+                <span aria-label="Measurement Type" class="type">бр.</span>
+            </span>
+            <input style="display: none;" type="text" class="qty-input" value="1" />
+        </span>
+    </div>
+    <button class="qty-inc" type="button" aria-label="Плюс"></button>
+</div>
+
+<script type="text/x-magento-init">
+    {
+        "[data-addmultipleproducts-js='qtycontroller-<?= /* @noEscape */$block->getProductId() ?>']": {
+            "Nimasystems_AddMultipleProducts/js/view/product/qty_controller": {
+                "productId": <?= /* @noEscape */$block->getProductId() ?>,
+                "isProductListing": <?= /* @noEscape */$block->isProductListing() ? 'true' : 'false' ?>,
+                "initialQty": <?= /* @noEscape */$block->getProductCartQty() ?>
+            }
+        }
+    }
+</script>

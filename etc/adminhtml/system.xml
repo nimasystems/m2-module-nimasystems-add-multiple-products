@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Nimasystems (info@nimasystems.com). All rights reserved.
+ * Please visit Nimasystems.com for license details
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="nimasystems" translate="label" sortOrder="-9999">
+            <label>Nimasystems</label>
+        </tab>
+        <section id="nimasystems_add_multiple_products" translate="label" type="text" sortOrder="-9999"
+                 showInDefault="1"
+                 showInWebsite="1"
+                 showInStore="1">
+            <tab>nimasystems</tab>
+            <label>Add Multiple Products</label>
+            <resource>Nimasystems_AddMultipleProducts::config</resource>
+            <group id="settings" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <label>Add Multiple Products Settings</label>
+                <field id="enabled" type="select" showInDefault="1" showInWebsite="1" showInStore="1"
+                       sortOrder="20"
+                       translate="label">
+                    <label>Module Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @author Amasty Team
+ * @copyright Copyright (c) Amasty (https://www.amasty.com)
+ * @package Request a Quote Base for Magento 2
+ */-->
+
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="product.info.addtocart.bundle">
+            <block class="Nimasystems\AddMultipleProducts\Block\Product\Action"
+                   ifconfig="nimasystems_add_multiple_products/settings/enabled"
+                   name="product.info.amp" before="product.info.addtocart.instantPurchase"/>
+        </referenceBlock>
+    </body>
+</page>

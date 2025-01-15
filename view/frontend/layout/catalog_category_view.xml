@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @author Nimasystems Ltd
+ * @copyright Copyright (c) Nimasystems Ltd (https://www.nimasystems.com)
+ * @package Add Multiple Products for Magento 2
+ */-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="category.product.addto">
+            <block class="Nimasystems\AddMultipleProducts\Block\Product\Action" name="product.info.addmultipleproducts"
+                   ifconfig="nimasystems_add_multiple_products/settings/enabled"
+                   before="-"/>
+        </referenceBlock>
+    </body>
+</page>

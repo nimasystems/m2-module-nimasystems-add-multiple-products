@@ -1,0 +1,28 @@
+{
+    "name": "nimasystems/module-add-multiple-products",
+    "description": "Add Multiple Products module for Magento 2",
+    "config": {
+        "sort-packages": true
+    },
+    "type": "magento2-module",
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Nimasystems\\AddMultipleProducts\\": ""
+        }
+    },
+    "authors": [
+        {
+            "name": "Martin Kovachev",
+            "email": "miracle@nimasystems.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "~7.4",
+        "ext-soap": "*",
+        "magento/framework": "103.0.*"
+    }
+}
