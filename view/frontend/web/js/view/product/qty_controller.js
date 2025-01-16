@@ -25,6 +25,7 @@ define(
             isEditingQty: false,
 
             options: {
+                addUrl: null,
                 productId: null,
                 initialQty: 0,
                 isProductListing: false,
@@ -73,6 +74,7 @@ define(
 
                     if (isEnterPressed) {
                         me.toggleEditQty(false);
+                        me.updateQty(me.qtyInputEl.val());
                     } else if (isEscPressed) {
                         me.toggleEditQty(false);
                     }
@@ -87,6 +89,22 @@ define(
                 this.initData();
 
                 this.element.data('amp-qtycontroller-initialized', 1);
+            },
+
+            _sendAjax: function (addUrl, data) {
+                $.ajax(
+                    {
+                        type: 'post',
+                        url: addUrl,
+                        data: data,
+                        dataType: 'json',
+                        success: function (data) {
+
+                        },
+                        error: function (xhr, status, error) {
+                        }
+                    }
+                );
             },
 
             toggleEditQty: function (value) {
@@ -104,12 +122,32 @@ define(
                 }
             },
 
+            updateQty: function (value) {
+                this.log(`updateQty ${value}`);
+
+                this._sendAjax(this.options.addUrl, {
+                    product: this.options.productId,
+                    qty: value,
+                    exact: 1,
+                });
+            },
+
             increaseQty: function () {
                 this.log('increaseQty');
+
+                this._sendAjax(this.options.addUrl, {
+                    product: this.options.productId,
+                    qty: 1,
+                });
             },
 
             decreaseQty: function () {
                 this.log('decreaseQty');
+
+                this._sendAjax(this.options.addUrl, {
+                    product: this.options.productId,
+                    qty: -1,
+                });
             },
 
             initData: function () {

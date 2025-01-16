@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Nimasystems (info@nimasystems.com). All rights reserved.
+ * Please visit Nimasystems.com for license details
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+    <router id="standard">
+        <route id="nimasystems_amp" frontName="nimasystems_amp">
+            <module name="Nimasystems_AddMultipleProducts" />
+        </route>
+    </router>
+</config>

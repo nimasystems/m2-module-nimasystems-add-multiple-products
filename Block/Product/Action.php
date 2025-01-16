@@ -105,6 +105,14 @@ class Action extends Template
         return $product ? (int)$product->getId() : null;
     }
 
+    /**
+     * @return string
+     */
+    public function getAddUrl(): string
+    {
+        return $this->cartDataHelper->getAddUrl($this->getProduct());
+    }
+
     public function isProductListing(): bool
     {
         $req_name = $this->getRequest()->getFullActionName();

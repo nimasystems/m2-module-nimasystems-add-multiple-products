@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Nimasystems\AddMultipleProducts\Helper;
 
 use Magento\Checkout\Model\Cart;
+use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 
@@ -69,5 +70,45 @@ class CartData extends AbstractHelper
     public function getProductCartQty(int $productId): ?int
     {
         return $this->cartItems[$productId] ?? null;
+    }
+
+    /**
+     * @param $product
+     * @param array $additional
+     * @return string
+     */
+    public function getAddUrl($product, array $additional = []): string
+    {
+        if (isset($additional['useUencPlaceholder'])) {
+            $uenc = "%uenc%";
+            unset($additional['useUencPlaceholder']);
+        } else {
+            $uenc = $this->urlEncoder->encode($this->_urlBuilder->getCurrentUrl());
+        }
+
+        $urlParamName = ActionInterface::PARAM_NAME_URL_ENCODED;
+
+        $routeParams = [
+            $urlParamName => $uenc,
+            'product' => $product ? $product->getEntityId() : null,
+            '_secure' => $this->_getRequest()->isSecure(),
+        ];
+
+        if (!empty($additional)) {
+            $routeParams = array_merge($routeParams, $additional);
+        }
+
+        if ($product && $product->hasUrlDataObject()) {
+            $routeParams['_scope'] = $product->getUrlDataObject()->getStoreId();
+            $routeParams['_scope_to_url'] = true;
+        }
+
+        if ($this->_getRequest()->getRouteName() == 'nimasystems_amp'
+            && $this->_getRequest()->getControllerName() == 'cart'
+        ) {
+            $routeParams['in_cart'] = 1;
+        }
+
+        return $this->_getUrl('nimasystems_amp/cart/add', $routeParams);
     }
 }

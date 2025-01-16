@@ -1,0 +1,216 @@
+<?php
+/**
+ * Copyright © Nimasystems (info@nimasystems.com). All rights reserved.
+ * Please visit Nimasystems.com for license details
+ */
+
+declare(strict_types=1);
+
+namespace Nimasystems\AddMultipleProducts\Controller\Cart;
+
+use Exception;
+use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Checkout\Controller\Cart;
+use Magento\Checkout\Model\Cart as CustomerCart;
+use Magento\Checkout\Model\Session;
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Controller\Result\Json;
+use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Data\Form\FormKey\Validator;
+use Magento\Framework\Escaper;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Filter\LocalizedToNormalized;
+use Magento\Framework\Locale\ResolverInterface;
+use Magento\Framework\View\LayoutInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Psr\Log\LoggerInterface;
+
+class Add extends Cart
+{
+
+    /**
+     * @var ProductRepositoryInterface
+     */
+    protected ProductRepositoryInterface $productRepository;
+
+    /**
+     * @var LayoutInterface
+     */
+    protected LayoutInterface $layout;
+
+    /**
+     * @var LocalizedToNormalized
+     */
+    protected LocalizedToNormalized $localizedToNormalized;
+
+    /**
+     * @var JsonFactory
+     */
+    protected JsonFactory $resultJsonFactory;
+
+    /**
+     * @var ResolverInterface
+     */
+    protected ResolverInterface $resolverInterface;
+
+    /**
+     * @var Escaper
+     */
+    protected Escaper $escaper;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected LoggerInterface $logger;
+
+    /**
+     * Add constructor.
+     * @param Context $context
+     * @param LayoutInterface $layout
+     * @param ScopeConfigInterface $scopeConfig
+     * @param Session $checkoutSession
+     * @param StoreManagerInterface $storeManager
+     * @param Validator $formKeyValidator
+     * @param LocalizedToNormalized $localizedToNormalized
+     * @param CustomerCart $cart
+     * @param ProductRepositoryInterface $productRepository
+     * @param JsonFactory $resultJsonFactory
+     * @param ResolverInterface $resolverInterface
+     * @param Escaper $escaper
+     * @param LoggerInterface $logger
+     */
+    public function __construct(
+        Context                    $context,
+        LayoutInterface            $layout,
+        ScopeConfigInterface       $scopeConfig,
+        Session                    $checkoutSession,
+        StoreManagerInterface      $storeManager,
+        Validator                  $formKeyValidator,
+        LocalizedToNormalized      $localizedToNormalized,
+        CustomerCart               $cart,
+        ProductRepositoryInterface $productRepository,
+        JsonFactory                $resultJsonFactory,
+        ResolverInterface          $resolverInterface,
+        Escaper                    $escaper,
+        LoggerInterface            $logger
+    )
+    {
+        parent::__construct(
+            $context,
+            $scopeConfig,
+            $checkoutSession,
+            $storeManager,
+            $formKeyValidator,
+            $cart
+        );
+        $this->layout = $layout;
+        $this->localizedToNormalized = $localizedToNormalized;
+        $this->productRepository = $productRepository;
+        $this->resultJsonFactory = $resultJsonFactory;
+        $this->resolverInterface = $resolverInterface;
+        $this->escaper = $escaper;
+        $this->logger = $logger;
+    }
+
+    /**
+     * @return bool|ProductInterface
+     * @throws NoSuchEntityException
+     */
+    protected function _initProduct()
+    {
+        $productId = (int)$this->getRequest()->getParam('product');
+
+        if ($productId) {
+            $storeId = $this->_storeManager->getStore()->getId();
+
+            try {
+                return $this->productRepository->getById($productId, false, $storeId);
+            } catch (NoSuchEntityException $e) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return Json|ResultInterface|void
+     */
+    public function execute()
+    {
+        $resultJson = $this->resultJsonFactory->create();
+        $params = $this->getRequest()->getParams();
+        $result = [];
+
+        // Initialize product
+        $product = $this->_initProduct();
+
+        if (!$product) {
+            return $this->_goBack();
+        }
+
+        try {
+            // Get the existing cart item by product
+            $cartItem = $this->cart->getQuote()->getItemByProduct($product);
+
+            if ($cartItem) {
+                $exact = $params['exact'] ?? false;
+
+                // Update the quantity
+                $newQty = (!$exact ? $cartItem->getQty() : 0) + (isset($params['qty']) ? (int)$params['qty'] : -1);
+
+                // Ensure quantity doesn't go below 1
+                if ($newQty < 1) {
+                    $this->cart->removeItem($cartItem->getId()); // Remove the item if quantity is less than 1
+                } else {
+                    $cartItem->setQty($newQty); // Update the quantity
+                }
+            } else {
+                // Add product to cart if it doesn't already exist
+                if (isset($params['qty'])) {
+                    $filter = $this->localizedToNormalized->setOptions(
+                        ['locale' => $this->resolverInterface->getLocale()]
+                    );
+                    $params['qty'] = $filter->filter($params['qty']);
+                }
+
+                $this->cart->addProduct($product, $params);
+            }
+
+            // Save the cart
+            $this->cart->save();
+
+            // Dispatch an event after the cart is updated
+            $this->_eventManager->dispatch(
+                'checkout_cart_add_product_complete',
+                ['product' => $product, 'request' => $this->getRequest(), 'response' => $this->getResponse()]
+            );
+
+            $this->messageManager->addSuccessMessage(
+                __('You updated the quantity of %1 in your shopping cart.', $product->getName())
+            );
+
+            return $resultJson->setData(['success' => true]);
+        } catch (LocalizedException $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+            return $resultJson->setData(['success' => false, 'error' => $e->getMessage()]);
+        } catch (Exception $e) {
+            $this->messageManager->addExceptionMessage($e, __('We can\'t update your shopping cart right now.'));
+            $this->logger->critical($e);
+            return $resultJson->setData(['success' => false]);
+        }
+    }
+
+    /**
+     * Returns cart url
+     *
+     * @return string
+     */
+    private function getCartUrl()
+    {
+        return $this->_url->getUrl('checkout/cart', ['_secure' => true]);
+    }
+}
