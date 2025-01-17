@@ -14,7 +14,9 @@ use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductFactory;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Element\Template\Context;
 use Nimasystems\AddMultipleProducts\Helper\CartData;
+use Nimasystems\AddMultipleProducts\Helper\Data;
 
 class Action extends Template
 {
@@ -22,6 +24,11 @@ class Action extends Template
      * @var string
      */
     protected $_template = 'Nimasystems_AddMultipleProducts::product/action.phtml';
+
+    /**
+     * @var Data
+     */
+    protected Data $dataHelper;
 
     /**
      * @var CartData
@@ -43,7 +50,27 @@ class Action extends Template
      */
     protected CategoryFactory $categoryFactory;
 
+    /**
+     * @var Product|null
+     */
+    private ?Product $product = null;
+
+    /**
+     * @var Category|null
+     */
+    private ?Category $category = null;
+
+    /**
+     * @param Context $context
+     * @param Data $dataHelper
+     * @param CartData $cartDataHelper
+     * @param Registry $registry
+     * @param ProductFactory $productFactory
+     * @param CategoryFactory $categoryFactory
+     * @param array $data
+     */
     public function __construct(Template\Context $context,
+                                Data             $dataHelper,
                                 CartData         $cartDataHelper,
                                 Registry         $registry,
                                 ProductFactory   $productFactory,
@@ -52,10 +79,30 @@ class Action extends Template
     {
         parent::__construct($context, $data);
 
+        $this->dataHelper = $dataHelper;
         $this->cartDataHelper = $cartDataHelper;
         $this->registry = $registry;
         $this->productFactory = $productFactory;
         $this->categoryFactory = $categoryFactory;
+    }
+
+    protected function _toHtml(): string
+    {
+        if (!$this->getIsEnabled()) {
+            return '';
+        }
+
+        return parent::_toHtml();
+    }
+
+    /**
+     * @param Product $product
+     * @return Action
+     */
+    public function setProduct(Product $product): Action
+    {
+        $this->product = $product;
+        return $this;
     }
 
     /**
@@ -63,6 +110,10 @@ class Action extends Template
      */
     public function getProduct(): ?Product
     {
+        if ($this->product) {
+            return $this->product;
+        }
+
         if (!$product = $this->registry->registry('current_product')) {
             $product = $this->getParentBlock()->getProduct();
         }
@@ -85,10 +136,24 @@ class Action extends Template
     }
 
     /**
+     * @param Category|null $category
+     * @return Action
+     */
+    public function setCategory(?Category $category): Action
+    {
+        $this->category = $category;
+        return $this;
+    }
+
+    /**
      * @return Category
      */
     public function getCategory(): ?Category
     {
+        if ($this->category) {
+            return $this->category;
+        }
+
         $category = $this->registry->registry('current_category');
 
         if (!$category) {
@@ -113,13 +178,28 @@ class Action extends Template
         return $this->cartDataHelper->getAddUrl($this->getProduct());
     }
 
-    public function isProductListing(): bool
+    /**
+     * @return string|null
+     */
+    public function getValueFormatString(): ?string
     {
-        $req_name = $this->getRequest()->getFullActionName();
+        return '{value}';
+    }
 
-        return ($this->getCategory() != null ||
-                $req_name == 'catalogsearch_result_index') &&
-            $req_name != 'catalog_product_view';
+    /**
+     * @return int|null
+     */
+    public function getMaximumQuantity(): ?int
+    {
+        return $this->dataHelper->getMaximumQuantity();
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsEnabled(): bool
+    {
+        return true;
     }
 }
 

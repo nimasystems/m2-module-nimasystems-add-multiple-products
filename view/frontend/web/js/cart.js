@@ -53,7 +53,6 @@ define(
 
                     console.log('CartData updated', instance.cartData);
 
-                    // TODO: optimize this update - only update products which are updated in the cart
                     $('.qty-controller').each(function () {
                         const mageAmpQtyController = $(this).data('mageAmpQtyController');
 

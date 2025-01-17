@@ -20,6 +20,7 @@ use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Data\Form\FormKey\Validator;
+use Magento\Framework\DataObject;
 use Magento\Framework\Escaper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -117,10 +118,10 @@ class Add extends Cart
     }
 
     /**
-     * @return bool|ProductInterface
+     * @return ProductInterface|null
      * @throws NoSuchEntityException
      */
-    protected function _initProduct()
+    protected function _initProduct(): ?ProductInterface
     {
         $productId = (int)$this->getRequest()->getParam('product');
 
@@ -130,20 +131,20 @@ class Add extends Cart
             try {
                 return $this->productRepository->getById($productId, false, $storeId);
             } catch (NoSuchEntityException $e) {
-                return false;
+                return null;
             }
         }
-        return false;
+        return null;
     }
 
     /**
-     * @return Json|ResultInterface|void
+     * @return Json|ResultInterface
+     * @throws NoSuchEntityException
      */
     public function execute()
     {
         $resultJson = $this->resultJsonFactory->create();
         $params = $this->getRequest()->getParams();
-        $result = [];
 
         // Initialize product
         $product = $this->_initProduct();
@@ -152,8 +153,25 @@ class Add extends Cart
             return $this->_goBack();
         }
 
+        // Allow to customize and filter/disable the action based on other criteria
+        $response = new DataObject(['can_execute' => true,
+                                    'error_message' => __('Quantity for product %1 cannot be changed.', $product->getName())]);
+
+        $this->_eventManager->dispatch(
+            'checkout_cart_validate_add_product',
+            ['product' => $product, 'request' => $this->getRequest(), 'response' => $response]
+        );
+
+        // Check if execution is allowed
+        if (!$response->getData('can_execute')) {
+            $errorMessage = $response->getData('error_message');
+            $this->messageManager->addErrorMessage($errorMessage);
+            return $resultJson->setData(['success' => false, 'error' => $errorMessage]);
+        }
+
         try {
             // Get the existing cart item by product
+            /** @noinspection PhpParamsInspection */
             $cartItem = $this->cart->getQuote()->getItemByProduct($product);
 
             if ($cartItem) {
@@ -177,6 +195,7 @@ class Add extends Cart
                     $params['qty'] = $filter->filter($params['qty']);
                 }
 
+                /** @noinspection PhpParamsInspection */
                 $this->cart->addProduct($product, $params);
             }
 
@@ -198,19 +217,9 @@ class Add extends Cart
             $this->messageManager->addErrorMessage($e->getMessage());
             return $resultJson->setData(['success' => false, 'error' => $e->getMessage()]);
         } catch (Exception $e) {
-            $this->messageManager->addExceptionMessage($e, __('We can\'t update your shopping cart right now.'));
+            $this->messageManager->addExceptionMessage($e, __('We cannot update your shopping cart right now.'));
             $this->logger->critical($e);
             return $resultJson->setData(['success' => false]);
         }
-    }
-
-    /**
-     * Returns cart url
-     *
-     * @return string
-     */
-    private function getCartUrl()
-    {
-        return $this->_url->getUrl('checkout/cart', ['_secure' => true]);
     }
 }

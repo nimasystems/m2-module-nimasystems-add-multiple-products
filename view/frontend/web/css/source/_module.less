@@ -1,8 +1,12 @@
 .qty-controller {
-    display: inline-block;
+    display: inline-flex; /* Makes the controller inline and sized to its content */
+    align-items: center; /* Vertically align items */
+    gap: 8px; /* Add spacing between children */
+    justify-content: center; /* Center children horizontally if needed */
+    max-width: 100%; /* Prevent it from exceeding the container */
+    margin: 10px auto; /* Center it within the parent container */
+
     position: relative;
-    margin-top: 10px;
-    margin-bottom: 10px;
 
     .hidden {
         display: none !important;
@@ -31,8 +35,8 @@
     }
 
     button:last-of-type {
-        background-color: #158e8d;
-        border: 1px solid #158e8d;
+        background-color: @active__color;
+        border: 1px solid @active__color;
     }
 
     button:last-of-type:after {
@@ -59,6 +63,8 @@
     }
 
     button {
+        flex: 0 0 auto; /* Prevent buttons from growing or shrinking */
+
         border: 0;
         border-radius: 100%;
         cursor: pointer;
@@ -80,21 +86,50 @@
 
     .quantity-value input.qty-input {
         height: 33px;
-        max-width: 49px;
+        max-width: 60px;
         min-width: 33px;
         text-align: center;
         width: auto;
     }
 
     .quantity-value {
+        flex: 1 1 auto; /* Allow the middle part to grow and shrink */
+        text-align: center; /* Center the text horizontally */
+        overflow: visible; /* Ensure text isn't clipped */
+        white-space: normal; /* Allow wrapping to multiple lines */
+        word-break: break-word; /* Break long words if needed */
+
         color: #000;
         float: left;
-        height: 33px;
+        //height: 33px;
         min-width: 33px;
         padding-left: 10px;
         padding-right: 10px;
-        text-align: center;
         font-size: 1.2em;
+
+        span.value {
+            display: block;
+            line-height: 1em;
+        }
+
+        span.value.edit-mode {
+            display: unset;
+            line-height: unset;
+        }
+    }
+}
+
+.item.product {
+    .qty-controller {
+        .quantity-value {
+            span.value {
+                margin-top: -9px;
+            }
+
+            span.value.edit-mode {
+                margin-top: unset;
+            }
+        }
     }
 }
 

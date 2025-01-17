@@ -27,6 +27,11 @@
                     <label>Module Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="maximum_qty" type="text" showInDefault="1" showInWebsite="1" showInStore="1"
+                       sortOrder="21"
+                       translate="label">
+                    <label>Maximum Quantity</label>
+                </field>
             </group>
         </section>
     </system>

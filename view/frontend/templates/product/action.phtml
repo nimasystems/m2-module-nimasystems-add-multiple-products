@@ -9,17 +9,16 @@
 ?>
 
 <div style="display:none" class="qty-controller" data-addmultipleproducts-js="qtycontroller-<?= /* @noEscape */$block->getProductId() ?>">
-    <button class="qty-dec" type="button" aria-label="Минус"></button>
+    <button class="qty-dec" type="button" title="<?= __('Decrease Quantity') ?>"></button>
     <div class="quantity-value">
         <span class="value">
-            <span aria-label="Click to edit" class="qty-view">
-                <span aria-label="Current Quantity" class="item-qty"></span>
-                <span aria-label="Measurement Type" class="type">бр.</span>
+            <span title="<?= __('Click to edit') ?>" class="qty-view">
+                <span aria-label="<?= __('Current Quantity') ?>" class="item-qty"></span>
             </span>
             <input style="display: none;" type="text" class="qty-input" value="1" />
         </span>
     </div>
-    <button class="qty-inc" type="button" aria-label="Плюс"></button>
+    <button class="qty-inc" type="button" title="<?= __('Increase Quantity') ?>"></button>
 </div>
 
 <script type="text/x-magento-init">
@@ -27,8 +26,9 @@
         "[data-addmultipleproducts-js='qtycontroller-<?= /* @noEscape */$block->getProductId() ?>']": {
             "Nimasystems_AddMultipleProducts/js/view/product/qty_controller": {
                 "productId": <?= /* @noEscape */$block->getProductId() ?>,
-                "isProductListing": <?= /* @noEscape */$block->isProductListing() ? 'true' : 'false' ?>,
                 "addUrl": "<?= /* @noEscape */$block->getAddUrl() ?>",
+                "valueFormatString": <?= /* @noEscape */json_encode($block->getValueFormatString()) ?>,
+                "maxQty": <?= /* @noEscape */json_encode($block->getMaximumQuantity()) ?>,
                 "initialQty": <?= /* @noEscape */$block->getProductCartQty() ?>
             }
         }

@@ -114,4 +114,9 @@ class Data extends AbstractHelper
     {
         return $this->getStoreConfigFlag('enabled');
     }
+
+    public function getMaximumQuantity(): ?int
+    {
+        return $this->getStoreConfig('maximum_qty') ? (int)$this->getStoreConfig('maximum_qty') : null;
+    }
 }
