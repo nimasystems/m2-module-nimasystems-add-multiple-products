@@ -7,3 +7,8 @@ Increase Quantity,Increase Quantity
 "Quantity for product %1 cannot be changed.","Quantity for product %1 cannot be changed."
 "%1 item in cart for %2","%1 item in cart for %2"
 "%1 items in cart for %2","%1 items in cart for %2"
+"Please enter a valid number","Please enter a valid number"
+"Minimum quantity is %1","Minimum quantity is %1"
+"Maximum quantity is %1","Maximum quantity is %1"
+"Quantity must be a multiple of %1","Quantity must be a multiple of %1"
+"Value is not valid:","Value is not valid:"

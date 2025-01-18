@@ -23,12 +23,13 @@ define(
             submitBtnEl: null,
             qtyViewEl: null,
             qtyInputEl: null,
+            qtyInputElHelp: null,
             qtyIncEl: null,
             qtyDecEl: null,
             statusEl: null,
 
             qty: 0,
-            forceUpdatNext: false,
+            forcedUpdatesNext: 0,
             totalAmount: 0,
             productPrice: 0,
             productPriceRowTotal: '',
@@ -40,18 +41,30 @@ define(
             options: {
                 addUrl: null,
                 productId: null,
-                maxQty: null,
                 valueFormatString: null,
+                stockConfig: {
+                    usesStock: false,
+                    inStock: false,
+                    minSaleQty: null,
+                    maxSaleQty: null,
+                    qtyUsesDecimals: false,
+                    qtyUsesIncrements: false,
+                    qtyIncrements: 1,
+                },
                 plSelector: '.product.actions',
                 pvSelector: '.product-add-form',
             },
 
-            updateProductData(data) {
+            updateProductData(data, forceDec) {
 
                 this.productPrice = data.price;
                 this.productPriceRowTotal = data.priceRowTotal;
 
                 this._updateProductQty(data.qty);
+
+                if ((forceDec === undefined || true) && this.forcedUpdatesNext > 0) {
+                    this.forcedUpdatesNext--;
+                }
             },
 
             _create: function () {
@@ -69,7 +82,7 @@ define(
                     '<span title="' + $t('Click to edit') + '" class="qty-view">' +
                     '<span aria-label="' + $t('Current Quantity') + '" class="item-qty"></span>' +
                     '</span>' +
-                    '<input style="display: none;" type="text" class="qty-input" value="1" />' +
+                    '<input style="display: none;" type="text" class="qty-input" value="1" /><span class="input-help"></span>' +
                     '</span>' +
                     '</div>' +
                     '<button class="qty-inc" type="button" title="' + $t('Increase Quantity') + '"></button>';
@@ -94,7 +107,7 @@ define(
             },
 
             _updateProductQty(qty) {
-                if ((!this.forceUpdatNext && qty === this.qty) || !this.productDataInitialized || !this.productPrice) {
+                if ((!this.forcedUpdatesNext && qty === this.qty) || !this.productDataInitialized || !this.productPrice) {
                     return;
                 }
 
@@ -102,7 +115,6 @@ define(
 
                 this.qty = qty;
                 this.totalAmount = this.qty * this.productPrice;
-                this.forceUpdatNext = false;
 
                 const qtyPickerVisible = this.qty > 0;
 
@@ -147,7 +159,7 @@ define(
                     return;
                 }
 
-                // this._log('initializeController', this.options);
+                this._log('initializeController', this.options);
 
                 this.containerEl = $(this.element);
 
@@ -155,6 +167,7 @@ define(
 
                 this.qtyEl = this.containerEl.find('.item-qty')
                 this.qtyInputEl = this.containerEl.find('.qty-input');
+                this.qtyInputElHelp = this.containerEl.find('.input-help');
                 this.qtyViewEl = this.containerEl.find('.qty-view');
                 this.qtyIncEl = this.containerEl.find('.qty-inc');
                 this.qtyDecEl = this.containerEl.find('.qty-dec');
@@ -182,8 +195,12 @@ define(
                 const productData = ampCart.getProductData(this.options.productId);
 
                 if (productData) {
-                    this.updateProductData(productData);
+                    this._updateFirstTimeProductData(productData);
                 }
+            },
+
+            _updateFirstTimeProductData: function (productData) {
+                this.updateProductData(productData, false);
             },
 
             _initLayout: function () {
@@ -230,23 +247,62 @@ define(
                 );
             },
 
+            _isValidInput: function (v) {
+                const incrValue = this._incrementValue();
+                console.log('is valid', v);
+
+                return (!isNaN(v) &&
+                    (!this.options.stockConfig.minSaleQty ||
+                        (this.options.stockConfig.minSaleQty && v >= this.options.stockConfig.minSaleQty)) &&
+                    (!this.options.stockConfig.maxSaleQty ||
+                        (this.options.stockConfig.maxSaleQty && v <= this.options.stockConfig.maxSaleQty)) &&
+                    (incrValue === 1 || (v % incrValue) === 0)
+                );
+            },
+
             _updateQtyFromField: function () {
                 const v = parseFloat(this.qtyInputEl.val());
 
-                if (!isNaN(v) &&
-                    (!this.options.maxQty || this.options.maxQty && v > this.options.maxQty)
-                ) {
+                if (this._isValidInput(v)) {
                     this._updateQty(v);
+                } else {
+                    this._log('invalid value', v);
                 }
+            },
+
+            _presentInvalidData: function (value) {
+                const msgParts = [];
+
+                if (isNaN(value)) {
+                    msgParts.push($t('Please enter a valid number'));
+                }
+
+                if (this.options.stockConfig.minSaleQty && value < this.options.stockConfig.minSaleQty) {
+                    msgParts.push($t('Minimum quantity is %1').replace('%1', this.options.stockConfig.minSaleQty));
+                }
+
+                if (this.options.stockConfig.maxSaleQty && value > this.options.stockConfig.maxSaleQty) {
+                    msgParts.push($t('Maximum quantity is %1').replace('%1', this.options.stockConfig.maxSaleQty));
+                }
+
+                if (this.options.stockConfig.qtyUsesIncrements && value % this.options.stockConfig.qtyIncrements !== 0) {
+                    msgParts.push($t('Quantity must be a multiple of %1').replace('%1', this.options.stockConfig.qtyIncrements));
+                }
+
+                alert($t("Value is not valid:") + "\n\n-" + msgParts.join("\n-"));
             },
 
             _initEditInput: function () {
 
                 const me = this;
 
+                let blurEnabled = true;
+
                 this.qtyInputEl.on('blur', () => {
-                    me._toggleEditQty(false);
-                    me._updateQtyFromField();
+                    if (blurEnabled) {
+                        me._toggleEditQty(false);
+                        me._updateQtyFromField();
+                    }
                 });
 
                 this.qtyInputEl.on('input', function (e) {
@@ -271,16 +327,29 @@ define(
                 });
 
                 this.qtyInputEl.on('keydown', (e) => {
+                    blurEnabled = false;
+
                     const isEnterPressed = e.key === 'Enter' || e.keyCode === 13 || e.which === 13;
                     const isEscPressed = e.key === 'Escape' || e.keyCode === 27 || e.which === 27;
+                    const isBackspacePressed = e.key === 'Backspace' || e.keyCode === 8 || e.which === 8;
+
+                    const currentVal = me.qtyInputEl.val();
+                    const unsetVal = (isBackspacePressed && currentVal.length > 0 ? currentVal.substring(0, currentVal.length - 1) : currentVal) +
+                        (isEnterPressed || isEscPressed || isBackspacePressed ? '' : e.key);
+                    const isValid = me._validateInput(unsetVal);
 
                     if (isEnterPressed) {
-                        me._toggleEditQty(false);
-                        me._updateQtyFromField();
-
+                        if (isValid) {
+                            me._toggleEditQty(false);
+                            me._updateQtyFromField();
+                        } else {
+                            me._presentInvalidData(unsetVal);
+                        }
                     } else if (isEscPressed) {
                         me._toggleEditQty(false);
                     }
+
+                    blurEnabled = true;
                 });
 
                 // Handle paste event
@@ -292,13 +361,29 @@ define(
                 });
             },
 
+            _validateInput: function (value) {
+                const isValid = this._isValidInput(value);
+                this.qtyInputEl.toggleClass('invalid-data', !isValid);
+                return isValid;
+            },
+
             _toggleEditQty: function (value) {
                 this.isEditingQty = value !== undefined ? value : !this.isEditingQty;
-                this.qtyViewEl.toggle(!this.isEditingQty);
-                this.qtyInputEl.toggle(this.isEditingQty);
-                this.qtyViewEl.parent().toggleClass('edit-mode', this.isEditingQty);
 
                 if (this.isEditingQty) {
+                    this.qtyInputEl.removeClass('invalid-data');
+                    this.qtyInputEl.val(this.qty);
+                }
+
+                this.qtyViewEl.toggle(!this.isEditingQty);
+                this.qtyInputEl.toggle(this.isEditingQty);
+
+                this.qtyViewEl.parent().toggleClass('edit-mode', this.isEditingQty);
+                // this.qtyInputElHelp.toggle(this.isEditingQty);
+
+                if (this.isEditingQty) {
+                    // this.qtyInputElHelp.html('min: 1, max: 3, increment: 1.5');
+
                     const me = this;
 
                     setTimeout(function () {
@@ -308,26 +393,37 @@ define(
                 }
             },
 
-            _updateQty: function (value) {
+            _setProgress: function (value) {
+                this.qtyIncEl.prop('disabled', value || !this._canIncrease());
+                this.qtyDecEl.prop('disabled', value || !this._canDecrease());
+                this.qtyInputEl.prop('disabled', value);
+                this.statusEl.toggleClass('in-progress', value);
+            },
 
-                if (value === this.qty) {
-                    return;
-                }
+            _canIncrease: function () {
+                return !this.options.stockConfig.maxSaleQty || this.qty < this.options.stockConfig.maxSaleQty;
+            },
 
-                this._log(`updateQty ${value}`);
+            _canDecrease: function () {
+                return !this.options.stockConfig.minSaleQty || this.qty >= this.options.stockConfig.minSaleQty;
+            },
+
+            _sendReq: function (qty, qtySend, exact) {
 
                 const currentQty = this.qty;
-                this.qty = value;
-                this.qtyEl.html(this._formatValue(this.qty));
-                this._updateIncDecButtons();
 
-                const me = this;
-                this.forceUpdatNext = true;
+                this.forcedUpdatesNext++;
+
+                this.qty = qty;
+                this.qtyEl.html(this._formatValue(this.qty));
+                this._updateProductQty(this.qty);
+
+                var me = this;
 
                 this._sendRequest(this.options.addUrl, {
                     product: this.options.productId,
-                    qty: value,
-                    exact: 1,
+                    qty: qtySend,
+                    exact: exact
                 }, function (success) {
                     if (!success) {
                         // revert back
@@ -336,19 +432,18 @@ define(
                 });
             },
 
-            _setProgress: function (value) {
-                this.qtyIncEl.prop('disabled', value);
-                this.qtyDecEl.prop('disabled', value);
-                this.qtyInputEl.prop('disabled', value);
-                this.statusEl.toggleClass('in-progress', value);
+            _updateQty: function (value) {
+                if (value === this.qty) {
+                    return;
+                }
+
+                this._log(`updateQty ${value}`);
+                this._sendReq(value, value, 1);
             },
 
-            _canIncrease: function () {
-                return !this.options.maxQty || this.qty < this.options.maxQty;
-            },
-
-            _canDecrease: function () {
-                return this.qty > 0
+            _incrementValue: function () {
+                return this.options.stockConfig.qtyUsesIncrements && this.options.stockConfig.qtyIncrements ?
+                    this.options.stockConfig.qtyIncrements : 1;
             },
 
             _increaseQty: function () {
@@ -357,12 +452,9 @@ define(
                 }
 
                 this._log('increaseQty');
-                this.forceUpdatNext = true;
 
-                this._sendRequest(this.options.addUrl, {
-                    product: this.options.productId,
-                    qty: 1,
-                });
+                const v = this._incrementValue();
+                this._sendReq(this.qty + v, v);
             },
 
             _decreaseQty: function () {
@@ -371,12 +463,9 @@ define(
                 }
 
                 this._log('decreaseQty');
-                this.forceUpdatNext = true;
 
-                this._sendRequest(this.options.addUrl, {
-                    product: this.options.productId,
-                    qty: -1,
-                });
+                const v = this._incrementValue();
+                this._sendReq(this.qty - v, -v);
             },
 
             _formatValue: function (value) {

@@ -153,7 +153,7 @@ class Add extends Cart
             return $this->_goBack();
         }
 
-        // TODO: validate - check max quantity
+        // TODO: validate - check min,max,qty decimals,qty increments quantity
 
         // Allow to customize and filter/disable the action based on other criteria
         $response = new DataObject(['can_execute' => true,
@@ -180,7 +180,7 @@ class Add extends Cart
                 $exact = $params['exact'] ?? false;
 
                 // Update the quantity
-                $newQty = (!$exact ? $cartItem->getQty() : 0) + (isset($params['qty']) ? (int)$params['qty'] : -1);
+                $newQty = (!$exact ? $cartItem->getQty() : 0) + (isset($params['qty']) ? (double)$params['qty'] : -1); // TODO: -1 - check increments here
 
                 // Ensure quantity doesn't go below 1
                 if ($newQty < 1) {
@@ -210,9 +210,10 @@ class Add extends Cart
                 ['product' => $product, 'request' => $this->getRequest(), 'response' => $this->getResponse()]
             );
 
-            $this->messageManager->addSuccessMessage(
-                __('You updated the quantity of %1 in your shopping cart.', $product->getName())
-            );
+            // TODO: enable this with a separate configuration
+//            $this->messageManager->addSuccessMessage(
+//                __('You updated the quantity of %1 in your shopping cart.', $product->getName())
+//            );
 
             return $resultJson->setData(['success' => true]);
         } catch (LocalizedException $e) {

@@ -12,6 +12,7 @@ use Magento\Catalog\Model\Category;
 use Magento\Catalog\Model\CategoryFactory;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductFactory;
+use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
@@ -33,6 +34,11 @@ class Action extends Template
      * @var Registry
      */
     protected Registry $registry;
+
+    /**
+     * @var StockRegistryInterface
+     */
+    protected StockRegistryInterface $stockRegistry;
 
     /**
      * @var ProductFactory
@@ -60,14 +66,16 @@ class Action extends Template
      * @param Registry $registry
      * @param ProductFactory $productFactory
      * @param CategoryFactory $categoryFactory
+     * @param StockRegistryInterface $stockRegistry
      * @param array $data
      */
-    public function __construct(Template\Context $context,
-                                Data             $dataHelper,
-                                Registry         $registry,
-                                ProductFactory   $productFactory,
-                                CategoryFactory  $categoryFactory,
-                                array            $data = [])
+    public function __construct(Template\Context       $context,
+                                Data                   $dataHelper,
+                                Registry               $registry,
+                                ProductFactory         $productFactory,
+                                CategoryFactory        $categoryFactory,
+                                StockRegistryInterface $stockRegistry,
+                                array                  $data = [])
     {
         parent::__construct($context, $data);
 
@@ -75,6 +83,7 @@ class Action extends Template
         $this->registry = $registry;
         $this->productFactory = $productFactory;
         $this->categoryFactory = $categoryFactory;
+        $this->stockRegistry = $stockRegistry;
     }
 
     protected function _toHtml(): string
@@ -183,12 +192,23 @@ class Action extends Template
         return '{value}';
     }
 
-    /**
-     * @return int|null
-     */
-    public function getMaximumQuantity(): ?int
+    public function getStockConfig(): array
     {
-        return $this->dataHelper->getMaximumQuantity();
+        $product = $this->getProduct();
+
+        //   $stockItem = $product->getExtensionAttributes()->getStockItem();
+        // TODO: is this too heavy to do for each product?
+        $stockItem = $this->stockRegistry->getStockItem($product->getId());
+
+        return [
+            'usesStock' => $stockItem && $stockItem->getManageStock(),
+            'inStock' => $stockItem ? $stockItem->getIsInStock() : null,
+            'minSaleQty' => $stockItem ? $stockItem->getMinSaleQty() : null,
+            'maxSaleQty' => $stockItem ? $stockItem->getMaxSaleQty() : null,
+            'qtyUsesDecimals' => $stockItem && $stockItem->getIsQtyDecimal(),
+            'qtyUsesIncrements' => $stockItem && $stockItem->getEnableQtyIncrements(),
+            'qtyIncrements' => $stockItem ? $stockItem->getQtyIncrements() : null,
+        ];
     }
 
     /**
@@ -199,4 +219,3 @@ class Action extends Template
         return true;
     }
 }
-

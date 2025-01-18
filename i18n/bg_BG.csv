@@ -7,3 +7,8 @@ Increase Quantity,Премахване на един продукт
 "Quantity for product %1 cannot be changed.","Количеството за продукт %1 не може да бъде променено."
 "%1 item in cart for %2","%1 добавен в количка на стойност %2"
 "%1 items in cart for %2","%1 добавени в количка на стойност %2"
+"Please enter a valid number","Въведете валидна стойност"
+"Minimum quantity is %1","Минимална стойност: %1"
+"Maximum quantity is %1","Максимална стойност: %1"
+"Quantity must be a multiple of %1","Трябва да бъде през: %1 наведнъж"
+"Value is not valid:","Невалидно количество:"
