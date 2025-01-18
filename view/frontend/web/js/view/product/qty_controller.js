@@ -45,6 +45,7 @@ define(
             isProductView: false,
 
             options: {
+                enableLogging: true,
                 addUrl: null,
                 productId: null,
                 valueFormatString: null,
@@ -146,7 +147,7 @@ define(
 
                 const msg = this.qty === 1 ? $t('%1 item in cart for %2') : $t('%1 items in cart for %2');
                 this.statusEl.html(msg
-                    .replace('%1', this.qty)
+                    .replace('%1', this._formatValue(this.qty))
                     .replace('%2', this.productPriceRowTotal)
                 );
 
@@ -155,13 +156,9 @@ define(
                 }
             },
 
-            _log: function (str, value, type) {
-                const logM = type ?? 'log';
-                const m = '[ampQtyController_ ' + this.options.productId + ']: ' + str;
-                if (value !== undefined) {
-                    console[logM](m, value);
-                } else {
-                    console[logM](m);
+            _log: function (message, value, level) {
+                if (this.options.enableLogging) {
+                    console[level || 'info'](`[ampQtyController_${this.options.productId}]: ${message}`, value ?? '');
                 }
             },
 
@@ -234,34 +231,25 @@ define(
 
                 const me = this;
 
-                $.ajax(
-                    {
-                        type: 'post',
-                        url: addUrl,
-                        data: data,
-                        dataType: 'json',
-                        success: function (data) {
-                            me._setProgress(false);
-
-                            const success = data['success'] || false;
-
-                            if (success) {
-                                me.productPriceRowTotal = data['cart']['item']['priceRowTotal'];
-                            }
-
-                            if (completion) {
-                                completion(success);
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            me._setProgress(false);
-
-                            if (completion) {
-                                completion(false);
-                            }
+                $.post(addUrl, data)
+                    .done((response) => {
+                        const success = response.success || false;
+                        if (success) {
+                            me.productPriceRowTotal = response['cart']['item']['priceRowTotal'] || me.productPriceRowTotal;
                         }
-                    }
-                );
+
+                        if (completion) {
+                            completion(success);
+                        }
+                    })
+                    .fail(() => {
+                        if (completion) {
+                            completion(false);
+                        }
+                    })
+                    .always(() => {
+                        this._setProgress(false);
+                    });
             },
 
             _isValidInput: function (v) {
@@ -502,8 +490,11 @@ define(
             },
 
             _formatValue: function (value) {
+                let rv = Math.round(value * 100) / 100;
+                rv = rv % 1 === 0 ? rv.toString() : rv.toFixed(2);
+
                 if (this.options.valueFormatString) {
-                    return this.options.valueFormatString.replace('{value}', value);
+                    return this.options.valueFormatString.replace('{value}', rv);
                 }
 
                 return value;
