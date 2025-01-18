@@ -12,6 +12,7 @@ use Exception;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Controller\Cart;
+use Magento\Checkout\Helper\Data;
 use Magento\Checkout\Model\Cart as CustomerCart;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Context;
@@ -32,7 +33,6 @@ use Psr\Log\LoggerInterface;
 
 class Add extends Cart
 {
-
     /**
      * @var ProductRepositoryInterface
      */
@@ -64,6 +64,11 @@ class Add extends Cart
     protected Escaper $escaper;
 
     /**
+     * @var Data
+     */
+    protected Data $dataHelper;
+
+    /**
      * @var LoggerInterface
      */
     protected LoggerInterface $logger;
@@ -81,6 +86,7 @@ class Add extends Cart
      * @param ProductRepositoryInterface $productRepository
      * @param JsonFactory $resultJsonFactory
      * @param ResolverInterface $resolverInterface
+     * @param Data $dataHelper
      * @param Escaper $escaper
      * @param LoggerInterface $logger
      */
@@ -96,6 +102,7 @@ class Add extends Cart
         ProductRepositoryInterface $productRepository,
         JsonFactory                $resultJsonFactory,
         ResolverInterface          $resolverInterface,
+        Data                       $dataHelper,
         Escaper                    $escaper,
         LoggerInterface            $logger
     )
@@ -113,6 +120,7 @@ class Add extends Cart
         $this->productRepository = $productRepository;
         $this->resultJsonFactory = $resultJsonFactory;
         $this->resolverInterface = $resolverInterface;
+        $this->dataHelper = $dataHelper;
         $this->escaper = $escaper;
         $this->logger = $logger;
     }
@@ -215,7 +223,17 @@ class Add extends Cart
 //                __('You updated the quantity of %1 in your shopping cart.', $product->getName())
 //            );
 
-            return $resultJson->setData(['success' => true]);
+            $rowTotal = $cartItem->getRowTotal();
+
+            return $resultJson->setData([
+                'success' => true,
+                'cart' => [
+                    'item' => [
+                        'price' => $rowTotal,
+                        'priceRowTotal' => $this->dataHelper->formatPrice($rowTotal),
+                    ],
+                ],
+            ]);
         } catch (LocalizedException $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
             return $resultJson->setData(['success' => false, 'error' => $e->getMessage()]);

@@ -15,6 +15,8 @@ define(
     ) {
         'use strict';
 
+        const DEBOUNCE_TIME_INTERVAL = 500;
+
         $.widget('mage.ampQtyController', {
 
             containerEl: null,
@@ -27,6 +29,10 @@ define(
             qtyIncEl: null,
             qtyDecEl: null,
             statusEl: null,
+
+            progressRunning: false,
+            pendingOperation: false,
+            pendingReq: null,
 
             qty: 0,
             forcedUpdatesNext: 0,
@@ -56,6 +62,11 @@ define(
             },
 
             updateProductData(data, forceDec) {
+
+                // do not update while we are running a concurent update
+                if (this.progressRunning || this.pendingOperation) {
+                    return;
+                }
 
                 this.productPrice = data.price;
                 this.productPriceRowTotal = data.priceRowTotal;
@@ -183,7 +194,9 @@ define(
                 });
 
                 this.qtyViewEl.on('click', () => {
-                    me._toggleEditQty(true);
+                    if (!me.progressRunning) {
+                        me._toggleEditQty(true);
+                    }
                 });
 
                 this._initEditInput();
@@ -232,6 +245,10 @@ define(
 
                             const success = data['success'] || false;
 
+                            if (success) {
+                                me.productPriceRowTotal = data['cart']['item']['priceRowTotal'];
+                            }
+
                             if (completion) {
                                 completion(success);
                             }
@@ -249,7 +266,10 @@ define(
 
             _isValidInput: function (v) {
                 const incrValue = this._incrementValue();
-                console.log('is valid', v);
+
+                if (v === 0 || v === '0') {
+                    return true;
+                }
 
                 return (!isNaN(v) &&
                     (!this.options.stockConfig.minSaleQty ||
@@ -394,6 +414,7 @@ define(
             },
 
             _setProgress: function (value) {
+                this.progressRunning = value;
                 this.qtyIncEl.prop('disabled', value || !this._canIncrease());
                 this.qtyDecEl.prop('disabled', value || !this._canDecrease());
                 this.qtyInputEl.prop('disabled', value);
@@ -410,26 +431,38 @@ define(
 
             _sendReq: function (qty, qtySend, exact) {
 
-                const currentQty = this.qty;
+                const currensendReqtQty = this.qty;
 
                 this.forcedUpdatesNext++;
+
+                const currentQty = this.qty;
 
                 this.qty = qty;
                 this.qtyEl.html(this._formatValue(this.qty));
                 this._updateProductQty(this.qty);
 
-                var me = this;
+                const me = this;
+                const addUrl = this.options.addUrl;
+                const productId = this.options.productId;
 
-                this._sendRequest(this.options.addUrl, {
-                    product: this.options.productId,
-                    qty: qtySend,
-                    exact: exact
-                }, function (success) {
-                    if (!success) {
-                        // revert back
-                        me._updateProductQty(currentQty);
-                    }
-                });
+                if (this.pendingReq) {
+                    this.pendingOperation = false;
+                    clearTimeout(this.pendingReq);
+                }
+
+                this.pendingOperation = true;
+
+                this.pendingReq = setTimeout(function () {
+                    me.pendingOperation = false;
+
+                    me._sendRequest(addUrl, {
+                        product: productId,
+                        qty: qty,
+                        exact: 1
+                    }, function (success) {
+                        me._updateProductQty(!success ? currensendReqtQty : qty);
+                    });
+                }, DEBOUNCE_TIME_INTERVAL);
             },
 
             _updateQty: function (value) {
