@@ -15,7 +15,6 @@ use Magento\Catalog\Model\ProductFactory;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
-use Nimasystems\AddMultipleProducts\Helper\CartData;
 use Nimasystems\AddMultipleProducts\Helper\Data;
 
 class Action extends Template
@@ -29,11 +28,6 @@ class Action extends Template
      * @var Data
      */
     protected Data $dataHelper;
-
-    /**
-     * @var CartData
-     */
-    protected CartData $cartDataHelper;
 
     /**
      * @var Registry
@@ -63,7 +57,6 @@ class Action extends Template
     /**
      * @param Context $context
      * @param Data $dataHelper
-     * @param CartData $cartDataHelper
      * @param Registry $registry
      * @param ProductFactory $productFactory
      * @param CategoryFactory $categoryFactory
@@ -71,7 +64,6 @@ class Action extends Template
      */
     public function __construct(Template\Context $context,
                                 Data             $dataHelper,
-                                CartData         $cartDataHelper,
                                 Registry         $registry,
                                 ProductFactory   $productFactory,
                                 CategoryFactory  $categoryFactory,
@@ -80,7 +72,6 @@ class Action extends Template
         parent::__construct($context, $data);
 
         $this->dataHelper = $dataHelper;
-        $this->cartDataHelper = $cartDataHelper;
         $this->registry = $registry;
         $this->productFactory = $productFactory;
         $this->categoryFactory = $categoryFactory;
@@ -126,16 +117,6 @@ class Action extends Template
     }
 
     /**
-     * @return int
-     */
-    public function getProductCartQty(): int
-    {
-        $product = $this->getProduct();
-        /** @noinspection PhpCastIsUnnecessaryInspection */
-        return $product ? (int)$this->cartDataHelper->getProductCartQty((int)$product->getId()) : 0;
-    }
-
-    /**
      * @param Category|null $category
      * @return Action
      */
@@ -175,7 +156,23 @@ class Action extends Template
      */
     public function getAddUrl(): string
     {
-        return $this->cartDataHelper->getAddUrl($this->getProduct());
+        return $this->dataHelper->getAddUrl($this->getProduct());
+    }
+
+    /**
+     * @return string
+     */
+    public function getProductListViewJqueryContainerSelector(): string
+    {
+        return $this->dataHelper->getProductListViewJqueryContainerSelector();
+    }
+
+    /**
+     * @return string
+     */
+    public function getProductViewJqueryContainerSelector(): string
+    {
+        return $this->dataHelper->getProductViewJqueryContainerSelector();
     }
 
     /**

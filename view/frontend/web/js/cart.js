@@ -3,13 +3,15 @@ define(
         'jquery',
         'ko',
         'underscore',
-        'Magento_Customer/js/customer-data'
+        'Magento_Customer/js/customer-data',
+        'Magento_Catalog/js/price-utils'
     ],
     function (
         $,
         ko,
         _,
-        customerData
+        customerData,
+        priceUtils
     ) {
         'use strict';
 
@@ -30,8 +32,20 @@ define(
                 return this.cartData;
             },
 
-            getProductQty: function (productId) {
-                return this.cartData[productId] || 0;
+            getProductData: function (productId) {
+                return this.cartData[productId];
+            },
+
+            _updateCartData: function (data) {
+                const qty = data['qty'] || 0;
+                const price = data['product_price_value'] || 0;
+                const priceRowTotal = data['product_row_total'] || '';
+
+                this.cartData[data.product_id] = {
+                    qty: qty,
+                    price: price,
+                    priceRowTotal: priceRowTotal
+                };
             },
 
             initialize: function () {
@@ -47,7 +61,7 @@ define(
 
                     _.each(productItems,
                         function (item) {
-                            instance.cartData[item['product_id']] = item['qty'] || 0;
+                            instance._updateCartData(item);
                         }
                     )
 
@@ -58,7 +72,11 @@ define(
 
                         if (mageAmpQtyController) {
                             const productId = mageAmpQtyController.options.productId;
-                            mageAmpQtyController.updateProductQty(instance.getProductQty(productId));
+                            const productData = instance.getProductData(productId);
+
+                            if (productData) {
+                                mageAmpQtyController.updateProductData(productData);
+                            }
                         }
                     });
                 }

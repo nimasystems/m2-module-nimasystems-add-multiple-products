@@ -33,6 +33,24 @@
                     <label>Maximum Quantity</label>
                 </field>
             </group>
+            <group id="product_list_view" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <label>Product List</label>
+                <field id="jquery_container_selector" type="text" showInDefault="1" showInWebsite="1" showInStore="1"
+                       sortOrder="21"
+                       translate="label">
+                    <label>Container JQuery Selector</label>
+                </field>
+            </group>
+            <group id="product_view" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <label>Product Details</label>
+                <field id="jquery_container_selector" type="text" showInDefault="1" showInWebsite="1" showInStore="1"
+                       sortOrder="21"
+                       translate="label">
+                    <label>Container JQuery Selector</label>
+                </field>
+            </group>
         </section>
     </system>
 </config>

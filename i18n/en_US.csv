@@ -5,3 +5,5 @@ Increase Quantity,Increase Quantity
 "You updated the quantity of %1 in your shopping cart.","You updated the quantity of %1 in your shopping cart."
 "We cannot update your shopping cart right now.","We cannot update your shopping cart right now."
 "Quantity for product %1 cannot be changed.","Quantity for product %1 cannot be changed."
+"%1 item in cart for %2","%1 item in cart for %2"
+"%1 items in cart for %2","%1 items in cart for %2"

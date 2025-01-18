@@ -12,6 +12,12 @@
             <settings>
                 <enabled>1</enabled>
             </settings>
+            <product_list_view>
+                <jquery_container_selector>.product.actions</jquery_container_selector>
+            </product_list_view>
+            <product_view>
+                <jquery_container_selector>.product-add-form</jquery_container_selector>
+            </product_view>
         </nimasystems_add_multiple_products>
     </default>
 </config>

@@ -153,6 +153,8 @@ class Add extends Cart
             return $this->_goBack();
         }
 
+        // TODO: validate - check max quantity
+
         // Allow to customize and filter/disable the action based on other criteria
         $response = new DataObject(['can_execute' => true,
                                     'error_message' => __('Quantity for product %1 cannot be changed.', $product->getName())]);

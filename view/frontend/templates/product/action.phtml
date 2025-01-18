@@ -28,8 +28,9 @@
                 "productId": <?= /* @noEscape */$block->getProductId() ?>,
                 "addUrl": "<?= /* @noEscape */$block->getAddUrl() ?>",
                 "valueFormatString": <?= /* @noEscape */json_encode($block->getValueFormatString()) ?>,
-                "maxQty": <?= /* @noEscape */json_encode($block->getMaximumQuantity()) ?>,
-                "initialQty": <?= /* @noEscape */$block->getProductCartQty() ?>
+                "plSelector": <?= /* @noEscape */json_encode($block->getProductListViewJqueryContainerSelector()) ?>,
+                "pvSelector": <?= /* @noEscape */json_encode($block->getProductViewJqueryContainerSelector()) ?>,
+                "maxQty": <?= /* @noEscape */json_encode($block->getMaximumQuantity()) ?>
             }
         }
     }
