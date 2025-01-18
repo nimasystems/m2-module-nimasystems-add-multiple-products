@@ -4,14 +4,16 @@ define(
         'ko',
         'underscore',
         'Magento_Customer/js/customer-data',
-        'Magento_Catalog/js/price-utils'
+        'Magento_Catalog/js/price-utils',
+        'domReady'
     ],
     function (
         $,
         ko,
         _,
         customerData,
-        priceUtils
+        priceUtils,
+        domReady,
     ) {
         'use strict';
 
@@ -66,7 +68,9 @@ define(
                     )
 
                     console.log('CartData updated', instance.cartData);
+                }
 
+                function informListeners() {
                     $('.qty-controller').each(function () {
                         const mageAmpQtyController = $(this).data('mageAmpQtyController');
 
@@ -83,7 +87,13 @@ define(
 
                 cart.subscribe(function (updatedCart) {
                     updateCartItems(updatedCart.items);
+                    informListeners();
                 }, this);
+
+                // first time init
+                domReady(function () {
+                    updateCartItems(cart().items);
+                });
             },
         };
 

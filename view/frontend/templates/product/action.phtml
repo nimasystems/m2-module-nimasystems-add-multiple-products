@@ -8,18 +8,7 @@
  */
 ?>
 
-<div style="display:none" class="qty-controller" data-addmultipleproducts-js="qtycontroller-<?= /* @noEscape */$block->getProductId() ?>">
-    <button class="qty-dec" type="button" title="<?= __('Decrease Quantity') ?>"></button>
-    <div class="quantity-value">
-        <span class="value">
-            <span title="<?= __('Click to edit') ?>" class="qty-view">
-                <span aria-label="<?= __('Current Quantity') ?>" class="item-qty"></span>
-            </span>
-            <input style="display: none;" type="text" class="qty-input" value="1" />
-        </span>
-    </div>
-    <button class="qty-inc" type="button" title="<?= __('Increase Quantity') ?>"></button>
-</div>
+<div style="display:none !important;" class="qty-controller" data-addmultipleproducts-js="qtycontroller-<?= /* @noEscape */$block->getProductId() ?>"></div>
 
 <script type="text/x-magento-init">
     {

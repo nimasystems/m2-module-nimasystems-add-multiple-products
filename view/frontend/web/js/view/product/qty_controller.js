@@ -3,12 +3,14 @@ define(
         'jquery',
         'ko',
         'ampCart',
+        'domReady',
         'mage/translate'
     ],
     function (
         $,
         ko,
         ampCart,
+        domReady,
         $t
     ) {
         'use strict';
@@ -46,13 +48,32 @@ define(
 
             updateProductData(data) {
 
-                this._log('updateProductData', data);
-
                 this.productPrice = data.price;
                 this.productPriceRowTotal = data.priceRowTotal;
 
-                this._initializeController();
                 this._updateProductQty(data.qty);
+            },
+
+            _create: function () {
+                const me = this;
+
+                domReady(function () {
+                    me._initializeController();
+                });
+            },
+
+            _initTemplate: function () {
+                const template = '<button class="qty-dec" type="button" title="' + $t('Decrease Quantity') + '"></button>' +
+                    '<div class="quantity-value">' +
+                    '<span class="value">' +
+                    '<span title="' + $t('Click to edit') + '" class="qty-view">' +
+                    '<span aria-label="' + $t('Current Quantity') + '" class="item-qty"></span>' +
+                    '</span>' +
+                    '<input style="display: none;" type="text" class="qty-input" value="1" />' +
+                    '</span>' +
+                    '</div>' +
+                    '<button class="qty-inc" type="button" title="' + $t('Increase Quantity') + '"></button>';
+                this.containerEl.html(template);
             },
 
             _appendStatusContainer: function (container) {
@@ -113,7 +134,7 @@ define(
 
             _log: function (str, value, type) {
                 const logM = type ?? 'log';
-                const m = '[ampQtyController] ' + this.options.productId + ': ' + str;
+                const m = '[ampQtyController_ ' + this.options.productId + ']: ' + str;
                 if (value !== undefined) {
                     console[logM](m, value);
                 } else {
@@ -126,9 +147,12 @@ define(
                     return;
                 }
 
-                this._log('initializeController', this.options);
+                // this._log('initializeController', this.options);
 
                 this.containerEl = $(this.element);
+
+                this._initTemplate();
+
                 this.qtyEl = this.containerEl.find('.item-qty')
                 this.qtyInputEl = this.containerEl.find('.qty-input');
                 this.qtyViewEl = this.containerEl.find('.qty-view');
@@ -154,6 +178,12 @@ define(
 
                 this.productDataInitialized = true;
                 this.element.data('amp-qtycontroller-initialized', 1);
+
+                const productData = ampCart.getProductData(this.options.productId);
+
+                if (productData) {
+                    this.updateProductData(productData);
+                }
             },
 
             _initLayout: function () {
