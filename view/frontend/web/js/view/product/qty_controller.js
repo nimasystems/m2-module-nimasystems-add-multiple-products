@@ -132,6 +132,7 @@ define(
                 this.qty = qty;
                 this.totalAmount = this.qty * this.productPrice;
 
+                const me = this;
                 const qtyPickerVisible = this.qty > 0;
 
                 this.qtyEl.html(this._formatValue(this.qty));
@@ -155,12 +156,25 @@ define(
                     this.statusEl.html(msg
                         .replace('%1', this._formatValue(this.qty))
                         .replace('%2', this.productPriceRowTotal)
-                    );
+                    ).on('click', function () {
+                        me._gotoProduct();
+                    });
                 }
 
                 if (this.originalQtyEl) {
                     this.originalQtyEl.toggleClass('qty-hidden', qtyPickerVisible);
                 }
+            },
+
+            _gotoProduct: function () {
+                if (!this.isProductList) {
+                    return;
+                }
+
+                this._log('clickProduct');
+
+                const productLinkEl = this.containerEl.closest('.product-item').find('a.product-item-link');
+                window.location = productLinkEl.attr('href');
             },
 
             _log: function (message, value, level) {
