@@ -69,10 +69,14 @@ define(
                     return;
                 }
 
-                this.productPrice = data.price;
-                this.productPriceRowTotal = data.priceRowTotal;
+                this.productPrice = data ? data.price : null;
+                this.productPriceRowTotal = data ? data.priceRowTotal : null;
 
-                this._updateProductQty(data.qty);
+                if (data === null) {
+                    this.forcedUpdatesNext++;
+                }
+
+                this._updateProductQty(data ? data.qty : 0);
 
                 if ((forceDec === undefined || true) && this.forcedUpdatesNext > 0) {
                     this.forcedUpdatesNext--;
@@ -119,7 +123,7 @@ define(
             },
 
             _updateProductQty(qty) {
-                if ((!this.forcedUpdatesNext && qty === this.qty) || !this.productDataInitialized || !this.productPrice) {
+                if ((!this.forcedUpdatesNext && qty === this.qty) || !this.productDataInitialized) {
                     return;
                 }
 
@@ -143,13 +147,16 @@ define(
                     }
                 } else {
                     this.statusEl.remove();
+                    this.statusEl = null;
                 }
 
-                const msg = this.qty === 1 ? $t('%1 item in cart for %2') : $t('%1 items in cart for %2');
-                this.statusEl.html(msg
-                    .replace('%1', this._formatValue(this.qty))
-                    .replace('%2', this.productPriceRowTotal)
-                );
+                if (this.statusEl) {
+                    const msg = this.qty === 1 ? $t('%1 item in cart for %2') : $t('%1 items in cart for %2');
+                    this.statusEl.html(msg
+                        .replace('%1', this._formatValue(this.qty))
+                        .replace('%2', this.productPriceRowTotal)
+                    );
+                }
 
                 if (this.originalQtyEl) {
                     this.originalQtyEl.toggleClass('qty-hidden', qtyPickerVisible);

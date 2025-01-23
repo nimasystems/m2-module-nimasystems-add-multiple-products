@@ -59,35 +59,62 @@ define(
                 }
 
                 function updateCartItems(productItems) {
+                    const itemsToRemove = [];
+
+                    // reset non-existing products
+                    _.each(instance.cartData,
+                        function (item, productId) {
+                            if (!_.find(productItems, {product_id: productId})) {
+                                itemsToRemove.push(parseInt(productId));
+                            }
+                        }
+                    );
+
                     instance.cartData = {};
 
+                    // update existing products
                     _.each(productItems,
                         function (item) {
                             instance._updateCartData(item);
                         }
                     )
 
-                    console.log('CartData updated', instance.cartData);
+                    console.log('CartData updated', {
+                        cartData: instance.cartData,
+                        itemsToRemove: itemsToRemove
+                    });
+
+                    return itemsToRemove;
                 }
 
-                function informListeners() {
+                function informListeners(nonexistingProductIds) {
+
+                    // console.log('informListeners', {
+                    //     nonexistingProductIds
+                    // });
+
                     $('.qty-controller').each(function () {
                         const mageAmpQtyController = $(this).data('mageAmpQtyController');
 
                         if (mageAmpQtyController) {
                             const productId = mageAmpQtyController.options.productId;
-                            const productData = instance.getProductData(productId);
 
-                            if (productData) {
-                                mageAmpQtyController.updateProductData(productData);
+                            if (nonexistingProductIds.includes(productId)) {
+                                mageAmpQtyController.updateProductData(null);
+                            } else {
+                                const productData = instance.getProductData(productId);
+
+                                if (productData) {
+                                    mageAmpQtyController.updateProductData(productData);
+                                }
                             }
                         }
                     });
                 }
 
                 cart.subscribe(function (updatedCart) {
-                    updateCartItems(updatedCart.items);
-                    informListeners();
+                    const nonexistingProductIds = updateCartItems(updatedCart.items);
+                    informListeners(nonexistingProductIds);
                 }, this);
 
                 // first time init
