@@ -147,8 +147,10 @@ define(
                         this._appendStatusContainer();
                     }
                 } else {
-                    this.statusEl.remove();
-                    this.statusEl = null;
+                    if (this.statusEl) {
+                        this.statusEl.remove();
+                        this.statusEl = null;
+                    }
                 }
 
                 if (this.statusEl) {
@@ -427,7 +429,10 @@ define(
                 this.qtyIncEl.prop('disabled', value || !this._canIncrease());
                 this.qtyDecEl.prop('disabled', value || !this._canDecrease());
                 this.qtyInputEl.prop('disabled', value);
-                this.statusEl.toggleClass('in-progress', value);
+
+                if (this.statusEl) {
+                    this.statusEl.toggleClass('in-progress', value);
+                }
             },
 
             _canIncrease: function () {
