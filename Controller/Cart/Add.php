@@ -179,10 +179,12 @@ class Add extends Cart
             return $resultJson->setData(['success' => false, 'error' => $errorMessage]);
         }
 
+        $quote = $this->cart->getQuote();
+
         try {
             // Get the existing cart item by product
             /** @noinspection PhpParamsInspection */
-            $cartItem = $this->cart->getQuote()->getItemByProduct($product);
+            $cartItem = $quote->getItemByProduct($product);
 
             if ($cartItem) {
                 $exact = $params['exact'] ?? false;
@@ -207,6 +209,13 @@ class Add extends Cart
 
                 /** @noinspection PhpParamsInspection */
                 $this->cart->addProduct($product, $params);
+
+                /** @noinspection PhpParamsInspection */
+                $cartItem = $quote->getItemByProduct($product);
+            }
+
+            if (!$cartItem) {
+                throw new Exception('Cart item not found');
             }
 
             // Save the cart
