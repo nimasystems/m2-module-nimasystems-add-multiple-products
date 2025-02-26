@@ -22,7 +22,6 @@
     "minimum-stability": "stable",
     "require": {
         "php": "~7.4",
-        "ext-soap": "*",
         "magento/framework": "103.0.*"
     }
 }

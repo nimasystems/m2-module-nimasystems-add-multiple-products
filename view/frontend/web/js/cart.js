@@ -79,10 +79,10 @@ define(
                         }
                     )
 
-                    console.log('CartData updated', {
-                        cartData: instance.cartData,
-                        itemsToRemove: itemsToRemove
-                    });
+                    // console.log('CartData updated', {
+                    //     cartData: instance.cartData,
+                    //     itemsToRemove: itemsToRemove
+                    // });
 
                     return itemsToRemove;
                 }
