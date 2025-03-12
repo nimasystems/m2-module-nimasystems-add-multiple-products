@@ -105,7 +105,15 @@ define(
                 this.containerEl.html(template);
             },
 
-            _appendStatusContainer: function (container) {
+            _appendRemoveParentClass: function(toggle) {
+                if (!this.isProductList || !this.statusEl) {
+                    return;
+                }
+
+                this.statusEl.closest('.item.product').toggleClass('amp-qty-in-cart', toggle);
+            },
+
+            _appendStatusContainer: function () {
                 if (this.isProductView) {
                     this._getStatusContainer().prepend(this.statusEl);
                 } else if (this.isProductList) {
@@ -145,9 +153,11 @@ define(
                     if (!this.statusEl) {
                         this.statusEl = $('<div/>').addClass('amp-product-overlay');
                         this._appendStatusContainer();
+                        this._appendRemoveParentClass(true);
                     }
                 } else {
                     if (this.statusEl) {
+                        this._appendRemoveParentClass(false);
                         this.statusEl.remove();
                         this.statusEl = null;
                     }
