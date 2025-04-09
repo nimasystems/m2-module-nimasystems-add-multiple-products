@@ -45,7 +45,7 @@ define(
             isProductView: false,
 
             options: {
-                enableLogging: true,
+                enableLogging: false,
                 addUrl: null,
                 productId: null,
                 valueFormatString: null,
