@@ -14,7 +14,7 @@ use Magento\Quote\Model\Quote\Item;
 
 class TotalProductPriceItem
 {
-    protected const KEY = 'product_row_total';
+    protected const string KEY = 'product_row_total';
 
     /**
      * @var Data

@@ -1,4 +1,4 @@
-var config = {
+const config = {
     map: {
         '*': {
             'ampCart': 'Nimasystems_AddMultipleProducts/js/cart'

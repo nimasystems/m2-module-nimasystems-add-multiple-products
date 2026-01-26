@@ -202,12 +202,12 @@ class Action extends Template
 
         return [
             'usesStock' => $stockItem && $stockItem->getManageStock(),
-            'inStock' => $stockItem ? $stockItem->getIsInStock() : null,
-            'minSaleQty' => $stockItem ? $stockItem->getMinSaleQty() : null,
-            'maxSaleQty' => $stockItem ? $stockItem->getMaxSaleQty() : null,
+            'inStock' => $stockItem?->getIsInStock(),
+            'minSaleQty' => $stockItem?->getMinSaleQty(),
+            'maxSaleQty' => $stockItem?->getMaxSaleQty(),
             'qtyUsesDecimals' => $stockItem && $stockItem->getIsQtyDecimal(),
             'qtyUsesIncrements' => $stockItem && $stockItem->getEnableQtyIncrements(),
-            'qtyIncrements' => $stockItem ? $stockItem->getQtyIncrements() : null,
+            'qtyIncrements' => $stockItem?->getQtyIncrements(),
         ];
     }
 

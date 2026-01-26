@@ -18,12 +18,12 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Data extends AbstractHelper
 {
-    const MODULE_NAME = 'Nimasystems_AddMultipleProducts';
+    const string MODULE_NAME = 'Nimasystems_AddMultipleProducts';
 
-    const XML_PATH = 'nimasystems_add_multiple_products/';
-    const XML_PATH_SETTINGS = self::XML_PATH . 'settings/';
-    const XML_PATH_PRODUCT_LIST_VIEW = self::XML_PATH . 'product_list_view/';
-    const XML_PATH_PRODUCT_VIEW = self::XML_PATH . 'product_view/';
+    const string XML_PATH = 'nimasystems_add_multiple_products/';
+    const string XML_PATH_SETTINGS = self::XML_PATH . 'settings/';
+    const string XML_PATH_PRODUCT_LIST_VIEW = self::XML_PATH . 'product_list_view/';
+    const string XML_PATH_PRODUCT_VIEW = self::XML_PATH . 'product_view/';
 
     /**
      * @var Context
