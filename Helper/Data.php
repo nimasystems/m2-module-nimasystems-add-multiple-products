@@ -73,7 +73,7 @@ class Data extends AbstractHelper
      * @param integer|null $storeId
      * @return mixed
      */
-    public function getStoreConfig(string $code, string $path = self::XML_PATH, int $storeId = null)
+    public function getStoreConfig(string $code, string $path = self::XML_PATH, ?int $storeId = null)
     {
         return $this->scopeConfig->getValue($path . $code, ScopeInterface::SCOPE_STORE, $storeId
         );
@@ -85,7 +85,7 @@ class Data extends AbstractHelper
      * @param integer|null $storeId
      * @return bool
      */
-    public function getStoreConfigFlag(string $code, string $path = self::XML_PATH, int $storeId = null): bool
+    public function getStoreConfigFlag(string $code, string $path = self::XML_PATH, ?int $storeId = null): bool
     {
         return $this->scopeConfig->isSetFlag(
             $path . $code, ScopeInterface::SCOPE_STORE, $storeId
@@ -98,7 +98,7 @@ class Data extends AbstractHelper
      * @param integer|null $storeId
      * @return false|string[]
      */
-    public function getStoreConfigArray(string $code, string $path = self::XML_PATH, int $storeId = null)
+    public function getStoreConfigArray(string $code, string $path = self::XML_PATH, ?int $storeId = null)
     {
         return explode(',', $this->scopeConfig->getValue(
             $path . $code, ScopeInterface::SCOPE_STORE, $storeId
